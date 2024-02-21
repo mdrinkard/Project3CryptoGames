@@ -1,5 +1,7 @@
 import random
 
+# player_money = crypto implementation
+
 playerIn = True #In the game
 dealerIn = True  #In the game
 playerDoublesDown = False  # Track if player has chosen to double down
@@ -26,12 +28,12 @@ def total(turn):
         if card in ['J', 'K', 'Q']:
             total += 10
         elif card == 'A':
-            total += 11  # initially treat ace as 11
+            total += 11  # Ace = 11 first
         else:
             total += card
     while total > 21 and ace_count:
-        total -= 10  # convert an ace from 11 to 1
-        ace_count -= 1
+        total -= 10  
+        ace_count -= 1 # Converting Ace to 1 if card total > 21 (if bust occurs with Ace in hand)
     return total
 
 # Function checking whether split is available

@@ -1,4 +1,56 @@
 import random
+from web3 import Web3
+import streamlit
+import json
+
+# Connect to Ganache
+ganache_url = "HTTP://127.0.0.1:7545"  # Replace with your Ganache instance URL
+web3 = Web3(Web3.HTTPProvider(ganache_url))
+
+# Verify Ganache connection
+print(web3.is_connected())
+
+# Setting contract address to the smart contracts and ABI to define the smart contract interaction
+contract_address = web3.to_checksum_address('0xd9145CCE52D386f254917e481eB44e9943F39138')
+contract_abi = 'abi.json'
+
+# Load the contract ABI
+with open(contract_abi, 'r') as file:
+    contract_abi = json.load(file)
+
+# The contract object. This allows us to begin automating the transactions based on the Blackjack events
+contract = web3.eth.contract(address=contract_address, abi=contract_abi)
+
+def place_bet(player_address, bet_amount_ether):
+    # Convert bet amount from Ether to Wei
+    bet_amount_wei = web3.toWei(bet_amount_ether, 'ether')
+
+    # Build the transaction
+    transaction = contract.functions.placeBet().buildTransaction({
+        'from': player_address,
+        'value': bet_amount_wei,
+        'gas': 2000000,
+        'nonce': web3.eth.getTransactionCount(player_address)
+    })
+
+    # Signing transaction
+    signed_txn = web3.eth.account.signTransaction(transaction, private_key='')
+
+    # Sending transaction
+    tx_hash = web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+    # Mining takes place here
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    return receipt
+
+# def payout_winnings(player_address, ether_bet):
+#     # Convert amount from Ether to Wei
+#     amount_wei = web3.toWei(ether_bet, 'ether')
+#     player_address = input('Enter address: ',)
+
+# def dealer_winings(dealer_address, ether_bet):
+#     amount_wei = web3.toWei(ether_bet, 'ether')
+#     dealer_address = '0xbd9fC2a58462A9303305E7E50ff72e44A815F8E8'
 
 # player_money = crypto implementation
 
@@ -93,7 +145,7 @@ while playerIn or dealerIn:
                 playerIn = False #Instance where player decides to stay - not out of game
             elif response == '2':
                 dealCard(playerHand)
-                # Because responces operate in a while loop, no need to check for total
+                # Because responces operate in a while loop, no need to check for total card value
             elif response == '3' and len(playerHand) == 2:  # Checking if hand contains 2 cards
                 playerDoublesDown = double_down(playerHand, player_money=100)  # Adjust for actual player money variable
                 playerIn = False  # End turn after doubling down
@@ -129,12 +181,16 @@ for index, playerHand in enumerate(playerHands):
     print(f'\nYour hand {index+1}: {playerHand} for a total of {player_total}')
     print(f'Dealer\'s hand: {dealerHand} for a total of {dealer_total}')
     if player_total > 21:
+        #payout_winnings(player_address= '0xbd9fC2a58462A9303305E7E50ff72e44A815F8E8', ether_bet = bet_amount)
         print('You bust! Dealer Wins.')
     elif dealer_total > 21 or player_total > dealer_total:
+        #payout_winnings(player_address= '0xD89307fd27d041632e864fd416d6d1FbcF3dCB80', ether_bet = bet_amount)
         print('You win!')
     elif player_total < dealer_total:
+        #payout_winnings(player_address= '0xbd9fC2a58462A9303305E7E50ff72e44A815F8E8', ether_bet = bet_amount)
         print('Dealer wins.')
-    else:  # player_total == dealer_total
+    else:  # layer_total == dealer_total
+        #payout_winnings(player_address= '0xD89307fd27d041632e864fd416d6d1FbcF3dCB80', dealer_address, ether_bet = bet_amount/ 2)
         print('Push. It\'s a tie!')
 
     if playerDoublesDown:

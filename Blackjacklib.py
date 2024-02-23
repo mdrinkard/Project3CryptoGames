@@ -94,10 +94,8 @@ def double_down(player_hand, player_money):
 # Defining the reveal of the dealers hand at end of game
 def revealDealerHand():
     if len(dealerHand) >= 2:
-        display_hand(hand, hide_first_card=True)
         return dealerHand[0], 'X' # 'X' to hide dealer's second card
     elif len(dealerHand) > 2:
-        display_hand(hand, hide_first_card=False)
         return dealerHand[0], dealerHand[1:]
 
 # Initial dealing

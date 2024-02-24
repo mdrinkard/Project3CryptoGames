@@ -71,9 +71,9 @@ def display_hand(hand, hide_first_card=False):
     """
     for card in hand:
         if hide_first_card and card == hand[0]:
-            st.image('Project3CryptoGames/Resources/back.png', width=100)
+            st.image('Resources/back.png', width=100)
         else:
-            image_path = f"Project3CryptoGames/Resources/{card['rank']}_{card['suit']}.png"
+            image_path = f"Resources/{card['rank']}_{card['suit']}.png"
             st.image(image_path, width=100)
 
 # Function checking whether split is available

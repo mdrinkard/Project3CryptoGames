@@ -97,15 +97,15 @@ def revealDealerHand():
         return dealerHand[0], 'X' # 'X' to hide dealer's second card
     elif len(dealerHand) > 2:
         return dealerHand[0], dealerHand[1:]
+    
+### Streamlit App Title ### Commenting out inputs that are replaced by streamlit functions
+st.title('The Greatest Blackjack app ever developed')
 
 # Initial dealing
 for _ in range(2):
     dealCard(dealerHand)
     for hand in playerHands:
         dealCard(hand)
-
-### Streamlit App Title ### Commenting out inputs that are replaced by streamlit functions
-st.title('The Greatest Blackjack app ever developed')
 
 # While loop chosen to constantly check participants hands for changes, selection of options, or bust scenario
 while playerIn or dealerIn:
@@ -136,7 +136,10 @@ while playerIn or dealerIn:
                     break  # Exit the current loop to handle split hands
 
             # Options Logic
-            options = st.radio("Select your move", ('Stay', 'Hit', 'Double Down'))
+            
+            options = st.text_input("Select your move", "Stay, Hit, Double Down")
+
+            # options = st.radio("Select your move", ('Stay', 'Hit', 'Double Down'))
             # response = input('1: Stay\n2: Hit\n3: Double Down\n')
             if options == 'Stay':
                 playerIn = False  # Instance where player decides to stay - not out of game

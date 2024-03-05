@@ -22,7 +22,7 @@ def load_contract():
     with open(Path(r'C:/Users/ryans/Ryans/Project3CryptoGames/Complied/BlackJack_ABI_file.json')) as f:
         artwork_abi = json.load(f)
 
-    contract_address = ("0xd9145CCE52D386f254917e481eB44e9943F39138")
+    contract_address = ("0xC7362734c0F93549de6A773e07D969833F523594")
 
     # Load the contract
     contract = w3.eth.contract(
@@ -36,7 +36,6 @@ contract = load_contract()
 ################################################################################
 # Token Balance Function
 ################################################################################
-player_address = "0x298149b7D54512d61f65c1D0b3F038BF5396bcc3"
 
 def get_token_balance(player_address):
 
@@ -51,10 +50,9 @@ def display_player_balances():
         balance = get_token_balance(player_address)
         st.write(f"Player {player_address}: {balance} tokens")
 
-player_accounts = ["0x298149b7D54512d61f65c1D0b3F038BF5396bcc3", "0xSomeOtherAddress"]
+player_accounts = w3.eth.accounts
 
-
-selected_account = st.selectbox("Select Player Account", player_accounts)
+selected_account = st.selectbox("Select Player Account",  options= player_accounts)
 
 
 ################################################################################
@@ -62,11 +60,9 @@ selected_account = st.selectbox("Select Player Account", player_accounts)
 ################################################################################
 #st.markdown("## Check Balance of an Account")
 
-#selected_address = st.selectbox("Select Account", options=accounts)
+tokens = contract.functions.balanceOf(selected_account).call()
 
-#tokens = contract.functions.balanceOf(selected_address).call()
-
-#st.write(f"This address owns {tokens} tokens")
+st.write(f"This address owns {tokens} tokens")
 
 #st.markdown("## Check  Ownership and Display Token")
 

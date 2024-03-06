@@ -39,7 +39,7 @@ class Card:
         else:
             self.short_suit = 'D'
 
-        self.image_location = 'Project3CryptoGames/Resources/{}{}.png'.format(self.short_rank, self.short_suit)
+        self.image_location = 'Resources/{}{}.png'.format(self.short_rank, self.short_suit)
 
     def __repr__(self):
         true_rank = ''
@@ -88,16 +88,16 @@ class Dealer:
         self.cards = []
         self.hand_scores = [0, 0]
         self.best_outcome = 'Awaiting deal'
+        self.balance = 10000  # Initialize the dealer's balance, assuming a larger amount
 
     def __repr__(self):
-        return 'Dealer Hand: {}, Scores: {}, Best Outcome: {}'.format(self.cards, list(set(self.hand_scores)), self.best_outcome)
+        return 'Dealer Hand: {}, Scores: {}, Best Outcome: {}, Balance: ${}'.format(self.cards, list(set(self.hand_scores)), self.best_outcome, self.balance)
 
     def hit(self, game_deck):
         draw_card = game_deck.draw()
         self.cards.append(draw_card)
         card_scores = draw_card.card_scores
-        self.hand_scores = [a + b for a,
-                            b in zip(self.hand_scores, card_scores)]
+        self.hand_scores = [a + b for a, b in zip(self.hand_scores, card_scores)]
         if len(self.cards) <= 1:
             self.best_outcome = 'Awaiting Deal'
         elif 21 in self.hand_scores and len(self.cards) == 2:
@@ -107,17 +107,43 @@ class Dealer:
         else:
             self.best_outcome = max([i for i in self.hand_scores if i <= 21])
 
+    def show_balance(self):
+        """Print or return the dealer's current balance."""
+        print(f"Dealer's Current Balance: ${self.balance}")
+        # Or, if you need to use the balance value elsewhere, return it:
+        # return self.balance
+
     def reset(self):
         self.cards.clear()
         self.hand_scores = [0, 0]
         self.best_outcome = 'Awaiting deal'
 
+
 class Player(Dealer):
     def __init__(self):
-        self.cards = []
-        self.hand_scores = [0, 0]
-        self.best_outcome = 'Awaiting deal'
-        self.possible_actions = ['No deal yet']
+        super().__init__()  # Initialize inheritance from Dealer
+        self.balance = 1000  # Initialize balance for the player
+        self.current_bet = 0  # Initialize the current bet to 0
+        self.cards = []  # Player's hand
+        self.hand_scores = [0, 0]  # Possible scores for the hand, considering Ace as 1 or 11
+        self.best_outcome = 'Awaiting deal'  # Best possible outcome based on the hand
+        self.possible_actions = ['No deal yet']  # Available actions for the player
+
+    def place_bet(self, amount):
+        """Places a bet if the player has enough balance."""
+        if amount <= self.balance:
+            self.current_bet = amount
+            self.balance -= amount
+            return True
+        return False
+
+    def payout(self, outcome):
+        """Adjusts the player's balance based on the game outcome."""
+        if outcome == "win":
+            self.balance += self.current_bet * 2  # Win: get bet back plus same amount
+        elif outcome == "blackjack":
+            self.balance += int(self.current_bet * 2.5)  # Blackjack pays 3:2
+        self.current_bet = 0  # Reset current bet after payout or loss
 
     def __repr__(self):
         return 'Player Hand: {}, Scores: {}, Best Outcome: {}'.format(self.cards, list(set(self.hand_scores)), self.best_outcome)

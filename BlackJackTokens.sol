@@ -1,36 +1,36 @@
 /*
-Blackjack Tokens
+Blackjack
 */
 
 pragma solidity ^0.5.10;
-/*Creating the fungible token along with the value and symbol*/
-contract ChipToken {
-    address payable owner = msg.sender;
-    string public symbol = "WALE"; 
-    uint public exchange_rate = 10;
-    uint public totalSupply = 60000;
 
-    mapping(address => uint) balances;
-/*Owner holding all fixed tokens*/
-    constructor() public {
-        balances[owner] = totalSupply; 
+contract Casino{
+    address payable public cashier;
+
+    constructor(address payable _cashier) public  payable {
+        cashier = _cashier;
+   }
+/* showing how many Eth the player currently has in their account*/
+    function PurchaseChips() public payable {
+        require(msg.value > 0, "must send non-zero Eth");
+        // increase or decrease balance of cashier
+        cashier.transfer(msg.value);
     }
 
-/* showing how many tokens the player currently has in their account*/
-    function balance() public view returns(uint) {
-        return balances[msg.sender];
+/*allows players to purchase Eth by sending wei to the contract*/
+    function exchange(uint amount) public {
+        require(amount > 0, "amount must be greater than 0");
+        require(msg.sender == cashier, "only cashier can exchange with players");
     }
 
-/*allows players to purchase tokens by sending Ether to the contract based on the exchange rate*/
-    function purchaseTokens() public payable {
-    uint amountOfTokens = msg.value * exchange_rate;
-    balances[msg.sender] += amountOfTokens;
-    owner.transfer(msg.value);
-}
 /*allows players to exchange their tokens back to the casino*/
-function exchange(uint amount) public {
-        require(amount <= balances[msg.sender], "Insufficient balance");
-        balances[msg.sender] -= amount;
-        balances[owner] += amount;
+    function Cashout (uint amount) external payable {
+        require(amount > 0, "amount must be more than 0");
+        require(msg.sender != cashier, "cashier can");
+
+        cashier.transfer(amount);
+         // transfer ETH to Player
+        //allows the contract to receieve ether
     }
+
 }

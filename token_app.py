@@ -19,10 +19,10 @@ w3 = Web3(Web3.HTTPProvider(("http://127.0.0.1:7545")))
 def load_contract():
 
     # Load the contract ABI
-    with open(Path(r'C:/Users/ryans/Ryans/Project3CryptoGames/Complied/BlackJack_ABI_file.json')) as f:
+    with open(Path(r'C:/Users/ryans/Next/Ryans/Project3CryptoGames/Complied/BlackJack_ABI_file.json')) as f:
         artwork_abi = json.load(f)
 
-    contract_address = ("0xC7362734c0F93549de6A773e07D969833F523594")
+    contract_address = "0x5bEE276df94dC77BF665F3eFB86A0A6dFBBC41a9"
 
     # Load the contract
     contract = w3.eth.contract(
@@ -37,32 +37,30 @@ contract = load_contract()
 # Token Balance Function
 ################################################################################
 
-def get_token_balance(player_address):
+def get_balance(player_address):
+    balance = w3.eth.get_balance(player_address)
 
-    return contract.functions.balanceOf(player_address).call()
+    balance_conversion = balance / 10**18
+    return balance_conversion
 
 #Display token balances of player
 
-def display_player_balances():
-
-    st.write("Token Balances:")
-    for player_address in player_address:
-        balance = get_token_balance(player_address)
-        st.write(f"Player {player_address}: {balance} tokens")
-
 player_accounts = w3.eth.accounts
 
+def display_player_balances(selected_account):
+    eth_balance = get_balance(selected_account)
+    st.write(f"Player {selected_account}: {eth_balance} ETH")
+
 selected_account = st.selectbox("Select Player Account",  options= player_accounts)
-
-
+display_player_balances(selected_account)
 ################################################################################
 # Display a Token
 ################################################################################
 #st.markdown("## Check Balance of an Account")
 
-tokens = contract.functions.balanceOf(selected_account).call()
+#eth = contract.functions.balanceOf(selected_account).call()
 
-st.write(f"This address owns {tokens} tokens")
+#st.write(f"This address owns {eth} chips")
 
 #st.markdown("## Check  Ownership and Display Token")
 

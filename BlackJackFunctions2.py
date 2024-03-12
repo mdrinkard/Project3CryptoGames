@@ -52,7 +52,7 @@ class Card:
         else:
             self.short_suit = 'D'
 
-        self.image_location = 'Project3CryptoGames/Resources/{}{}.png'.format(self.short_rank, self.short_suit)
+        self.image_location = 'Resources/{}{}.png'.format(self.short_rank, self.short_suit)
 
     def __repr__(self):
         true_rank = ''

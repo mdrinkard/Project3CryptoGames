@@ -3,11 +3,24 @@ from web3 import Web3
 import streamlit
 import json
 from PIL import Image
-# self.image_location = 'Resources/{}{}.png'.format(self.short_rank, self.short_suit)
 
-
-### Card Class ###
-
+class Wallet:
+    def __init__(self, initial_balance):
+        self.wallet_balance = initial_balance
+        self.current_bet = 0
+    
+    def place_bet(self, amount, player):
+        if amount <= self.wallet_balance:
+            self.wallet_balance -= amount
+            player.current_bet = amount  # Update the current_bet attribute in the Player class
+            return True  # Return True if the bet was successfully placed
+        else:
+            print('Insufficient balance')
+            return False  # Return False if the bet couldn't be placed
+        
+    def adjust_balance(self, amount):
+        self.wallet_balance += amount
+    
 class Card:
     def __init__(self, rank, suit):
         self.rank = rank
@@ -39,7 +52,7 @@ class Card:
         else:
             self.short_suit = 'D'
 
-        self.image_location = 'Resources/{}{}.png'.format(self.short_rank, self.short_suit)
+        self.image_location = 'Project3CryptoGames/Resources/{}{}.png'.format(self.short_rank, self.short_suit)
 
     def __repr__(self):
         true_rank = ''
@@ -96,8 +109,7 @@ class Dealer:
         draw_card = game_deck.draw()
         self.cards.append(draw_card)
         card_scores = draw_card.card_scores
-        self.hand_scores = [a + b for a,
-                            b in zip(self.hand_scores, card_scores)]
+        self.hand_scores = [a + b for a, b in zip(self.hand_scores, card_scores)]
         if len(self.cards) <= 1:
             self.best_outcome = 'Awaiting Deal'
         elif 21 in self.hand_scores and len(self.cards) == 2:
@@ -106,14 +118,16 @@ class Dealer:
             self.best_outcome = 'Bust'
         else:
             self.best_outcome = max([i for i in self.hand_scores if i <= 21])
-
     def reset(self):
         self.cards.clear()
         self.hand_scores = [0, 0]
         self.best_outcome = 'Awaiting deal'
 
+
 class Player(Dealer):
-    def __init__(self):
+    def __init__(self,wallet):
+        super().__init__()
+        self.wallet = wallet
         self.cards = []
         self.hand_scores = [0, 0]
         self.best_outcome = 'Awaiting deal'
@@ -127,9 +141,11 @@ class Player(Dealer):
         game_play.commentary.append('Player is standing')
 
     def double_down(self, game_deck, game_play):
-        self.hit(game_deck)
-        game_play.commentary.append('Player is doubling down')
-        self.possible_actions = []
+        if self.wallet.current_bet * 2 <= self.wallet.wallet_balance:
+            self.wallet.current_bet == self.wallet.current_bet*2
+            self.hit(game_deck)
+            game_play.commentary.append('Player is doubling down')
+            self.possible_actions = []
 
     def player_hit(self, game_deck, game_play):
         self.hit(game_deck)
@@ -154,7 +170,6 @@ class Player(Dealer):
         self.best_outcome = 'Awaiting deal'
         self.possible_actions = []
         self.has_doubled_down = False
-        
 
 class GamePlay:
     def __init__(self, player, dealer, game_deck, blackjack_multiplier):
@@ -164,8 +179,10 @@ class GamePlay:
         self.blackjack_multiplier = blackjack_multiplier
         self.commentary = []
 
+    
     def __repr__(self):
         return "Commentary: {}".format(self.commentary)
+      
 
     def dealer_turn(self):
         self.dealer.hit(self.game_deck)
@@ -184,43 +201,61 @@ class GamePlay:
             self.commentary.append(
                 'Dealer is proceeding with {}'.format(self.dealer.best_outcome))
 
+    def update_wallet(self, player, result):
+        if result == "Player wins":
+            player.wallet.adjust_balance(player.current_bet*2)
+        elif result == "Dealer wins":
+            player.wallet.adjust_balance(-player.current_bet)
+        elif result == "Tie":
+            pass
+
     def update(self):
         if len(self.player.possible_actions) == 0:
             if self.player.best_outcome == 'Bust':
                 self.commentary.append(
                     "Player busted. No need for Dealer to go. Player loses their initial bet")
+                self.update_wallet(self.player, "Dealer wins")
             elif self.player.best_outcome == 'Blackjack' and self.dealer.cards[0].rank not in [1, 10]:
                 self.commentary.append("Player has Blackjack. Dealer has no chance to hit Blackjack. Player wins {} times their initial bet".format(
                     str(self.blackjack_multiplier)))
+                self.update_wallet(self.player, "Player wins")
             else:
                 self.commentary.append("Dealer turn can proceed as normal")
                 self.dealer_turn()
                 if self.dealer.best_outcome == 'Bust':
                     self.commentary.append(
                         "Dealer busted. Player wins their initial bet")
+                    self.update_wallet(self.player, "Player wins")
                 elif self.dealer.best_outcome == 'Blackjack' and self.player.best_outcome == 'Blackjack':
                     self.commentary.append(
                         "Dealer and Player both have Blackjack. Player retains their initial bet")
+                    self.update_wallet(self.player, "Tie")
                 elif self.dealer.best_outcome == 'Blackjack' and self.player.best_outcome != 'Blackjack':
                     self.commentary.append(
                         "Dealer has Blackjack. Player loses their initial bet")
+                    self.update_wallet(self.player, "Dealer wins")
                 elif self.dealer.best_outcome != 'Blackjack' and self.player.best_outcome == 'Blackjack':
                     self.commentary.append("Player has Blackjack. Player wins {} times their initial bet".format(
                         str(self.blackjack_multiplier)))
+                    self.update_wallet(self.player, "Player wins")
                 elif int(self.dealer.best_outcome) == int(self.player.best_outcome):
                     self.commentary.append(
                         "Dealer and Player have same score. Player retains their initial bet")
+                    self.update_wallet(self.player, "Tie")
                 elif int(self.dealer.best_outcome) > int(self.player.best_outcome):
                     self.commentary.append("Dealer has {} whereas Player has {}. Player loses their initial bet".format(
                         str(self.dealer.best_outcome), str(self.player.best_outcome)))
+                    self.update_wallet(self.player, "Dealer wins")
                 else:
                     self.commentary.append("Dealer has {} whereas Player has {}. Player wins their initial bet".format(
                         str(self.dealer.best_outcome), str(self.player.best_outcome)))
+                    self.update_wallet(self.player, "Player wins")
         else:
             pass
 
     def reset(self):
         self.commentary = []
+
 
     def deal_in(self):
         self.dealer.reset()
@@ -231,134 +266,10 @@ class GamePlay:
         self.dealer.hit(self.game_deck)
         self.player.hit(self.game_deck)
         self.player.get_possibilities(self)
-# # player_money = crypto implementation
-
-# playerIn = True #In the game
-# dealerIn = True  #In the game
-# playerDoublesDown = False  # Track if player has chosen to double down
-# playerSplit = False  # Track if player has chosen to split
-
-# # Deck of Cards
-# suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-# ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']
-# deck = [{'rank': rank, 'suit': suit} for suit in suits for rank in ranks]
-
-
-# # List of Player & Dealer hands
-# playerHands = [[]]  
-# dealerHand = []
-
-
-# # Deals card in the beginning
-# def dealCard(turn):
-#     card = random.choice(deck)
-#     turn.append(card)
-#     deck.remove(card)
-
-# # Function defining card total & face card values
-# def total(hand):
-#     """
-#     Function to calculate the total value of a hand.
-#     """
-#     total = 0
-#     num_aces = 0
-#     for card in hand:
-#         if card['rank'] in ['Jack', 'Queen', 'King']: # Converting String Values in dictionary into an int
-#             total += 10
-#         elif card['rank'] == 'Ace':
-#             num_aces += 1
-#             total += 11 # Ace = 11 first
-#         else:
-#             total += int(card['rank']) ### Is Calculating the total based on the value part in the dictionary
-#     while total > 21 and num_aces:
-#         total -= 10
-#         num_aces -= 1 # Converting Ace to 1 if card total > 21 (if bust occurs with Ace in hand)
-#     return total
-
-# # streamlit function to show cards in app
-
-# def display_hand(hand, hide_first_card=False):
-#     """
-#     Function to display a hand.
-#     """
-#     for card in hand:
-#         if hide_first_card and card == hand[0]:
-#             st.image('Resources/back.png', width=100)
-#         else:
-#             image_path = f"Resources/{card['rank']}_{card['suit']}.png"
-#             st.image(image_path, width=100)
-
-# # Function checking whether split is available
-# def check_for_split(player_hand):
-#     return len(player_hand) == 2 and player_hand[0] == player_hand[1]
-
-# # Function defining 2 hands for players when chosen to split
-# def split_hand(player_hand):
-#     return [[player_hand[0]], [player_hand[1]]]
-
-# # Function for checking/ adjusting total wallet for player based on hand (double_down)
-# def double_down(player_hand, player_money):
-#     if player_money >= 2:  # Assuming 1 is current bet, check if player has enough to double
-#         dealCard(player_hand)
-#         return True  # Player chose to double down
-#     return False
-
-# # Defining the reveal of the dealers hand at end of game
-# def revealDealerHand():
-#     if len(dealerHand) >= 2:
-#         return dealerHand[0], 'X' # 'X' to hide dealer's second card
-#     elif len(dealerHand) > 2:
-#         return dealerHand[0], dealerHand[1:]
-    
-# def blackjack():
-#     global playerHands, dealerHand
-    
-#     # Clear hands from previous rounds
-#     playerHands = [[]]
-#     dealerHand.clear()
-    
-#     # Deal 2 cards to dealer and player
-#     for _ in range(2):
-#         dealCard(dealerHand)
-#         for hand in playerHands:
-#             dealCard(hand)
-    
-#     # Displaying cards on Streamlit
-#     st.subheader("Dealer's Hand:")
-#     st.write(f'{dealerHand[1]}')
-#     display_hand(dealerHand,hide_first_card=True)
-#     st.subheader("Player's Hand(s):")
-#     for hand in playerHands:
-#         st.write(f"{hand}")
-#         display_hand(hand,hide_first_card=False)
-
-# # def hit_or_stay():
-# #     hit_button = st.button("Hit")
-# #     stay_button = st.button("Stay")
-
-# #     if hit_button:
-# #         return 'Hit'
-# #     elif stay_button:
-# #         return 'Stay'
-# #     else:
-# #         return None
-
-# # def player_turn():
-# #     global playerHands
-    
-# #     # Continue player's turn until they choose to stay or bust
-# #     while True:
-# #         decision = hit_or_stay()
-# #         if decision == 'Hit':
-# #             for hand in playerHands:
-# #                 dealCard(hand)
-# #             st.subheader("Player's Hand(s):")
-# #             for hand in playerHands:
-# #                 st.write(f"{hand}")
-# #                 display_hand(hand, hide_first_card=False)
-# #             total_value = total(playerHands[0])  # Assuming only one player for simplicity
-# #             if total_value > 21:
-# #                 st.write("Bust! Player's hand total exceeds 21.")
-# #                 break
-# #         else:
-#             break
+# player_balance = 100
+# player_wallet = Wallet(player_balance, player_balance)
+# print(player_balance)
+# player_wallet.place_bet(20.0)
+# print(player_balance)
+# player_wallet.adjust_balance(-20.0)
+# print(player_balance)

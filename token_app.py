@@ -80,4 +80,3 @@ display_player_balances(selected_account)
 
     #st.write(f"The tokenURI is {token_uri}")
     #st.image(token_uri)
-

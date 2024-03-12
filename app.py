@@ -16,7 +16,7 @@ w3 = Web3(Web3.HTTPProvider(("http://127.0.0.1:7545")))
 def load_contract():
 
     # Load the contract ABI
-    with open(Path(r'C:/Users/ryans/Next/Ryans/Project3CryptoGames/Complied/BlackJack_ABI_file.json')) as f:
+    with open(Path(r'C:\Users\Micha\Bootcamp\Git\Project3CryptoGames\Complied\BlackJack_ABI_file.json')) as f:
         artwork_abi = json.load(f)
 
     contract_address = "0x5bEE276df94dC77BF665F3eFB86A0A6dFBBC41a9"

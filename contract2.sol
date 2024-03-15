@@ -1,24 +1,28 @@
-pragma solidity ^0.5.1;
+pragma solidity ^0.5.10;
 
-contract AccountTransfer {
-    address public account1;
-    address public account2;
-
-    constructor(address _account1, address _account2) {
-        account1 = _account1;
-        account2 = _account2;
+contract EtherWallet {
+    mapping(address => uint256) public balances;
+    
+    event Deposit(address indexed sender, uint256 amount);
+    event Withdrawal(address indexed recipient, uint256 amount);
+    
+    function deposit() public payable {
+        require(msg.value > 0, "Value must be greater than 0");
+        
+        balances[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
     }
-
-    function transfer() public {
-        uint balance1 = address(this).balance;
-        address payable _account1 = payable(account1);
-        address payable _account2 = payable(account2);
-
-        // Transfer funds from account1 to account2
-        _account1.transfer(balance1);
-        // Log the transfer event
-        emit Transfer(_account1, _account2, balance1);
+    
+    function withdraw(uint256 _amount) public {
+        require(balances[msg.sender] >= _amount, "Insufficient balance");
+        require(_amount > 0, "Amount must be greater than 0");
+        
+        balances[msg.sender] -= _amount;
+        msg.sender.transfer(_amount);
+        emit Withdrawal(msg.sender, _amount);
     }
-
-    event Transfer(address indexed from, address indexed to, uint amount);
+    
+    function getBalance() public view returns (uint256) {
+        return balances[msg.sender];
+    }
 }

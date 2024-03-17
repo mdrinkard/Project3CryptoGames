@@ -266,10 +266,3 @@ class GamePlay:
         self.dealer.hit(self.game_deck)
         self.player.hit(self.game_deck)
         self.player.get_possibilities(self)
-# player_balance = 100
-# player_wallet = Wallet(player_balance, player_balance)
-# print(player_balance)
-# player_wallet.place_bet(20.0)
-# print(player_balance)
-# player_wallet.adjust_balance(-20.0)
-# print(player_balance)

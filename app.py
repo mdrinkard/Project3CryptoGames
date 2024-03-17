@@ -1,6 +1,6 @@
 import streamlit as st
 from PIL import Image
-from BlackJackFunctions2 import GamePlay, Player, Dealer, Deck, Wallet
+from BlackJackFunctions import GamePlay, Player, Dealer, Deck, Wallet
 import os
 import json
 from web3 import Web3
@@ -19,7 +19,7 @@ def load_contract():
     with open(Path(r'C:\Users\Micha\Bootcamp\Git\Project3CryptoGames\Complied\contract.json')) as f:
         artwork_abi = json.load(f)
 
-    contract_address = '0x3B08508FBc6DC9165cD502ba63d768B9f84F70B7'
+    contract_address = '0x3ddbc27e624728E17f7353019Db627a69C9B759D'
 
     # Load the contract
     contract = w3.eth.contract(
@@ -28,7 +28,6 @@ def load_contract():
     )
 
     return contract
-
 def main():
     st.sidebar.title('Ethereum Wallet')
 
@@ -79,28 +78,32 @@ def main():
         balance = get_balance()
         st.sidebar.write(f"Your current balance is {w3.fromWei(balance, 'ether')} Ether")
 
-if __name__ == "__main__":
-    main()
+    # Set balance to contract balance
+    balance = get_balance()  # Fetch the contract balance and assign it to the balance variable
 
+    return balance  # Return the contract balance
+
+if __name__ == "__main__":
+    contract_balance = main()
 
 # Game settings
 number_of_decks = 6
 blackjack_multiplier = 1.5
-balance = 1000
 
 # Initialize player, dealer, deck, and gameplay. Cache these variables
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
-def start_game():
-    global balance
-    initial_balance = balance
-    wallet = Wallet(initial_balance)
+def start_game(contract_balance):
+    initial_balance = contract_balance
+    wallet = Wallet(initial_balance/1000000000000000000)
     game_deck = Deck(number_of_decks)
     dealer = Dealer()
     player = Player(wallet)
     game_play = GamePlay(player, dealer, game_deck, blackjack_multiplier)
     return game_deck, dealer, player, game_play
 
-game_deck, dealer, player, game_play = start_game()
+
+
+game_deck, dealer, player, game_play = start_game(contract_balance)
 
 
 ### Title
